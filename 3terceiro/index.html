@@ -218,8 +218,8 @@
       var agora = new Date().getTime();
       if (ultimo != 0) {
         var diferenca = agora - ultimo;
-        rTri += ((90 * diferenca) / 10.0) % 360.0;
-        rQuad += ((75 * diferenca) / 100.0) % 360.0;
+        rTri += ((90 * diferenca) / 500.0) % 360.0;
+        rQuad += ((75 * diferenca) / 500.0) % 360.0;
       }
       ultimo = agora;
     }
