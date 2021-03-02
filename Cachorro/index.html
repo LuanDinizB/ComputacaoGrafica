@@ -1,0 +1,437 @@
+<html lang="pt">
+
+<head>
+	<meta charset="utf-8">
+	<title>Exemplo 1</title>
+
+	<script id="shader-vs" type="x-shader/x-vertex">
+		attribute vec3 aVertexPosition;
+      
+		uniform mat4 uMMatrix;
+		uniform mat4 uVMatrix;
+		uniform mat4 uPMatrix;
+      
+		void main(void)
+		{
+			gl_Position = uPMatrix * uVMatrix * uMMatrix *
+		    vec4(aVertexPosition, 1.0);
+		}
+    </script>
+
+	<script id="shader-fs" type="x-shader/x-fragment">
+		precision mediump float;
+      
+		void main(void)
+		{	
+			gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
+		}
+    </script>
+
+	<!--Bibliotecas de Funções -->
+	<script type="text/javascript" src="js/gl-matrix-2.4.0.min.js"></script>
+	<script type="text/javascript" src="js/jquery-3.2.1.min.js"></script>
+
+	<script type="text/javascript">
+		//Declação de Variáveis
+		var gl;
+		var shaderProgram;
+		var triangleVertexPositionBuffer;
+		var mMatrix = mat4.create();
+		var pMatrix = mat4.create();
+		var vMatrix = mat4.create();
+		var vertices;
+		var quadradoBuffer;
+		var topoCabecaBuffer;
+		var corpoMeioBuffer;
+		var bracoDireito;
+		var bracoEsquerdo;
+		var maoDireita;
+		var maoEsquerda;
+		var orelhaEsquerda;
+		var orelhaDireita;
+
+
+		// Iniciar o ambiente quando a página for carregada
+		$(function () {
+			iniciaWebGL();
+		});
+
+		function iniciaWebGL() {
+			var canvas = $('#canvas-webgl')[0];
+			iniciarGL(canvas); // Definir como um canvas 3D
+			iniciarShaders();  // Obter e processar os Shaders
+			iniciarBuffers();  // Enviar o triângulo e quadrado na GPU
+			iniciarAmbiente(); // Definir background e cor do objeto
+			desenharCena();    // Usar os itens anteriores e desenhar
+		}
+
+		function iniciarGL(canvas) {
+			try {
+				gl = canvas.getContext("webgl") ||
+					canvas.getContext("experimental-webgl");
+				gl.viewportWidth = canvas.width;
+				gl.viewportHeight = canvas.height;
+			}
+			catch (e) {
+				if (!gl)
+					alert("Não pode inicializar WebGL, desculpe");
+			}
+		}
+
+		function iniciarShaders() {
+			var vertexShader = getShader(gl, "#shader-vs");
+			var fragmentShader = getShader(gl, "#shader-fs");
+
+			shaderProgram = gl.createProgram();
+			gl.attachShader(shaderProgram, vertexShader);
+			gl.attachShader(shaderProgram, fragmentShader);
+			gl.linkProgram(shaderProgram);
+
+			if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
+				alert("Não pode inicializar shaders");
+			}
+
+			gl.useProgram(shaderProgram);
+
+			shaderProgram.vertexPositionAttribute = gl.getAttribLocation(shaderProgram, "aVertexPosition");
+			gl.enableVertexAttribArray(shaderProgram.vertexPositionAttribute);
+
+			shaderProgram.pMatrixUniform = gl.getUniformLocation(shaderProgram, "uPMatrix");
+			shaderProgram.vMatrixUniform = gl.getUniformLocation(shaderProgram, "uVMatrix");
+			shaderProgram.mMatrixUniform = gl.getUniformLocation(shaderProgram, "uMMatrix");
+		}
+
+		function getShader(gl, id) {
+			var shaderScript = $(id)[0];
+			if (!shaderScript) {
+				return null;
+			}
+
+			var str = "";
+			var k = shaderScript.firstChild;
+			while (k) {
+				if (k.nodeType === 3) {
+					str += k.textContent;
+				}
+				k = k.nextSibling;
+			}
+
+			var shader;
+
+			if (shaderScript.type === "x-shader/x-fragment") {
+				shader = gl.createShader(gl.FRAGMENT_SHADER);
+			} else if (shaderScript.type === "x-shader/x-vertex") {
+				shader = gl.createShader(gl.VERTEX_SHADER);
+			} else {
+				return null;
+			}
+
+			gl.shaderSource(shader, str);
+			gl.compileShader(shader);
+
+			if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+				alert(gl.getShaderInfoLog(shader));
+				return null;
+			}
+
+			return shader;
+		}
+
+		function iniciarBuffers() {
+
+			orelhaDireita = gl.createBuffer();
+			gl.bindBuffer(gl.ARRAY_BUFFER, orelhaDireita);
+			vertices = [
+				1.3, 3.4, 0.0,
+				-2.0, 3.4, 0.0,
+				1.3, 0.1, 0.0,
+				-2.0, 0.1, 0.0
+			];
+			gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+			orelhaDireita.itemSize = 3;
+			orelhaDireita.numItems = 4;
+
+			quadradoBuffer = gl.createBuffer();
+			gl.bindBuffer(gl.ARRAY_BUFFER, orelhaDireita);
+			vertices = [
+				1.3, 3.4, 0.0,
+				-2.0, 3.4, 0.0,
+				1.3, 0.1, 0.0,
+				-2.0, 0.1, 0.0
+			];
+			gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+			quadradoBuffer.itemSize = 3;
+			quadradoBuffer.numItems = 4;
+
+
+			topoCabecaBuffer = gl.createBuffer();
+			gl.bindBuffer(gl.ARRAY_BUFFER, topoCabecaBuffer);
+			vertices = [
+				-7.0, 7.9, 0.0,
+				-3.0, 7.9, 0.0,
+				-7.0, 4.9, 0.0,
+				-3.0, 4.9, 0.0
+			];
+			gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+			topoCabecaBuffer.itemSize = 3;
+			topoCabecaBuffer.numItems = 4;
+
+
+
+			triangleVertexPositionBuffer = gl.createBuffer();
+			gl.bindBuffer(gl.ARRAY_BUFFER, triangleVertexPositionBuffer);
+			vertices = [
+				1.0, 2.0, 0.0,
+				-2.0, 2.0, 0.0,
+				1.0, -1.0, 0.0,
+				-2.0, -1.0, 0.0
+			];
+
+			gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+			triangleVertexPositionBuffer.itemSize = 3;
+			triangleVertexPositionBuffer.numItems = 4;
+
+
+			quadradoBuffer = gl.createBuffer();
+			gl.bindBuffer(gl.ARRAY_BUFFER, quadradoBuffer);
+			vertices = [
+				1.3, 3.4, 0.0,
+				-2.0, 3.4, 0.0,
+				1.3, 0.1, 0.0,
+				-2.0, 0.1, 0.0
+			];
+			gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+			quadradoBuffer.itemSize = 3;
+			quadradoBuffer.numItems = 4;
+
+
+			corpoMeioBuffer = gl.createBuffer();
+			gl.bindBuffer(gl.ARRAY_BUFFER, corpoMeioBuffer);
+			vertices = [
+			    -8.2, 2.2, 0.0,
+				-5.6, -12.0, 0.0,
+				-11, -12.0, 0.0,
+			];
+			gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+			corpoMeioBuffer.itemSize = 3;
+			corpoMeioBuffer.numItems = 3;
+
+
+			bracoDireito = gl.createBuffer();
+			gl.bindBuffer(gl.ARRAY_BUFFER, bracoDireito);
+			vertices = [
+			    -16, -3.0, 0.0,
+				-22, -9.0, 0.0,
+				-17.8, -12.0, 0.0,
+			];
+			gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+			bracoDireito.itemSize = 3;
+			bracoDireito.numItems = 3;
+
+
+			bracoEsquerdo = gl.createBuffer();
+			gl.bindBuffer(gl.ARRAY_BUFFER, bracoEsquerdo);
+			vertices = [
+			    -9.9, -3.5, 0.0,
+				-4.0, -9.5, 0.0,
+				-8.32, -12.0, 0.0,
+			];
+			gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+			bracoEsquerdo.itemSize = 3;
+			bracoEsquerdo.numItems = 3;
+
+
+			maoEsquerda = gl.createBuffer();
+			gl.bindBuffer(gl.ARRAY_BUFFER, maoEsquerda);
+			vertices = [
+			    -8.2, -10.5, 0.0,
+				-7, -12.0, 0.0,
+				-9.8, -12.0, 0.0,
+			];
+			gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+			maoEsquerda.itemSize = 3;
+			maoEsquerda.numItems = 3;
+			
+
+			maoDireita = gl.createBuffer();
+			gl.bindBuffer(gl.ARRAY_BUFFER, maoDireita);
+			vertices = [
+			    -11, -10.5, 0.0,
+				-12.7, -12.0, 0.0,
+				-9.7, -12.0, 0.0,
+			];
+			gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+			maoDireita.itemSize = 3;
+			maoDireita.numItems = 3;
+			
+			orelhaDireita = gl.createBuffer();
+			gl.bindBuffer(gl.ARRAY_BUFFER, orelhaDireita);
+			vertices = [
+			    2.5, -3.1, 0.0,
+				-5.6, -10.0, 0.0,
+				-11, -10.0, 0.0
+			];
+			gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+			orelhaDireita.itemSize = 3;
+			orelhaDireita.numItems = 3;
+
+			
+			orelhaEsquerda = gl.createBuffer();
+			gl.bindBuffer(gl.ARRAY_BUFFER, orelhaEsquerda);
+			vertices = [
+			    8.42, -3.1, 0.0,
+				20, -10.0, 0.0,
+				14, -10.0, 0.0
+			];
+			gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+			orelhaEsquerda.itemSize = 3;
+			orelhaEsquerda.numItems = 3;
+			
+
+
+			
+
+
+
+
+		}
+		
+		function iniciarAmbiente() {
+			gl.clearColor(0, 0, 255, 1.0);
+			gl.enable(gl.DEPTH_TEST);
+		}
+
+		function desenharCena() {
+			gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+			mat4.perspective(pMatrix, 45, gl.viewportWidth / gl.viewportHeight, 0.1, 100.0);
+			mat4.identity(mMatrix);
+			mat4.identity(vMatrix);
+
+			var translation = vec3.create();
+
+			
+			
+			// Desenhando Triângulo
+			vec3.set(translation, -2.0, 2.0, -20.0);
+			mat4.translate(mMatrix, mMatrix, translation);
+			gl.bindBuffer(gl.ARRAY_BUFFER, triangleVertexPositionBuffer);
+			gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, triangleVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+			setMatrixUniforms();
+			gl.drawArrays(gl.TRIANGLE_STRIP, 0, triangleVertexPositionBuffer.numItems);
+			
+
+			// Desenhando quadrado
+
+			vec3.set(translation, 3.0, -1.0, -2.0);
+			mat4.translate(mMatrix, mMatrix, translation);
+			gl.bindBuffer(gl.ARRAY_BUFFER, quadradoBuffer);
+			gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, quadradoBuffer.itemSize, gl.FLOAT, false, 0, 0);
+			setMatrixUniforms();
+			gl.drawArrays(gl.TRIANGLE_STRIP, 0, quadradoBuffer.numItems);
+
+
+			// Desenhando Topo Da Cabeça
+
+			vec3.set(translation, 3.0, -1.0, -2.0);
+			mat4.translate(mMatrix, mMatrix, translation);
+			gl.bindBuffer(gl.ARRAY_BUFFER, topoCabecaBuffer);
+			gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, topoCabecaBuffer.itemSize, gl.FLOAT, false, 0, 0);
+			setMatrixUniforms();
+			gl.drawArrays(gl.TRIANGLE_STRIP, 0, topoCabecaBuffer.numItems);
+
+			// Desenhando Corpo do Meio
+
+			vec3.set(translation, 3.0, -1.0, -2.0);
+			mat4.translate(mMatrix, mMatrix, translation);
+			gl.bindBuffer(gl.ARRAY_BUFFER, corpoMeioBuffer);
+			gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, corpoMeioBuffer.itemSize, gl.FLOAT, false, 0, 0);
+			setMatrixUniforms();
+			gl.drawArrays(gl.TRIANGLE_STRIP, 0, corpoMeioBuffer.numItems);
+
+			// Desenhando Braço Esquerdo
+
+			vec3.set(translation, 3.0, -1.0, -2.0);
+			mat4.translate(mMatrix, mMatrix, translation);
+			gl.bindBuffer(gl.ARRAY_BUFFER, bracoEsquerdo);
+			gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, bracoEsquerdo.itemSize, gl.FLOAT, false, 0, 0);
+			setMatrixUniforms();
+			gl.drawArrays(gl.TRIANGLE_STRIP, 0, bracoEsquerdo.numItems);
+
+
+			// Desenhando Braço Direito
+
+			vec3.set(translation, 3.0, -1.0, -2.0);
+			mat4.translate(mMatrix, mMatrix, translation);
+			gl.bindBuffer(gl.ARRAY_BUFFER, bracoDireito);
+			gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, bracoDireito.itemSize, gl.FLOAT, false, 0, 0);
+			setMatrixUniforms();
+			gl.drawArrays(gl.TRIANGLE_STRIP, 0, bracoDireito.numItems);
+
+
+			// Desenhando Mão Esquerda
+
+			vec3.set(translation, 0.0, -1.0, -2.0);
+			mat4.translate(mMatrix, mMatrix, translation);
+			gl.bindBuffer(gl.ARRAY_BUFFER, maoEsquerda);
+			gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, maoEsquerda.itemSize, gl.FLOAT, false, 0, 0);
+			setMatrixUniforms();
+			gl.drawArrays(gl.TRIANGLE_STRIP, 0, maoEsquerda.numItems);
+
+			// Desenhando Mão Direita
+
+			vec3.set(translation, -10.0, -1.0, -2.0);
+			mat4.translate(mMatrix, mMatrix, translation);
+			gl.bindBuffer(gl.ARRAY_BUFFER, maoDireita);
+			gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, maoDireita.itemSize, gl.FLOAT, false, 0, 0);
+			setMatrixUniforms();
+			gl.drawArrays(gl.TRIANGLE_STRIP, 0, maoDireita.numItems);
+			
+			// Desenhando Orelha Direita
+
+			vec3.set(translation, -10.0, 20.0, -2.0);
+			mat4.translate(mMatrix, mMatrix, translation);
+			gl.bindBuffer(gl.ARRAY_BUFFER, orelhaDireita);
+			gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, orelhaDireita.itemSize, gl.FLOAT, false, 0, 0);
+			setMatrixUniforms();
+			gl.drawArrays(gl.TRIANGLES, 0, orelhaDireita.numItems);
+
+
+			// Desenhando Orelha Esquerda
+
+			vec3.set(translation, 0.0, 0.0, 0.0);
+			mat4.translate(mMatrix, mMatrix, translation);
+			gl.bindBuffer(gl.ARRAY_BUFFER, orelhaEsquerda);
+			gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, orelhaEsquerda.itemSize, gl.FLOAT, false, 0, 0);
+			setMatrixUniforms();
+			gl.drawArrays(gl.TRIANGLE_STRIP, 0, orelhaEsquerda.numItems);
+
+			
+			
+		}
+         
+		function setMatrixUniforms() {
+			gl.uniformMatrix4fv(shaderProgram.pMatrixUniform, false, pMatrix);
+			gl.uniformMatrix4fv(shaderProgram.vMatrixUniform, false, vMatrix);
+			gl.uniformMatrix4fv(shaderProgram.mMatrixUniform, false, mMatrix);
+		}
+
+	</script>
+
+	<!--Aparência da página (canvas, background...)-->
+	<style>
+		canvas {
+			border: none;
+			width: 700px;
+			height: 700px;
+		}
+	</style>
+</head>
+
+<body>
+	<canvas id="canvas-webgl" width="700px" height="700px" style="border:none">
+	</canvas>
+
+
+</body>
+
+</html>
