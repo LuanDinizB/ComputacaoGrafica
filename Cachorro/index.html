@@ -68,7 +68,6 @@
         var rTri = 0;
         var rQuad = 0;
         var rPiramide = 0;
-
         var xRot = 0;
         var xVelo = 0;
 
@@ -77,76 +76,10 @@
 
         var z = -5.0;
 
-
         function mPushMatrix() {
             var copy = mat4.clone(mMatrix);
             mMatrixPilha.push(copy);
         }
-
-        function mPopMatrix() {
-            if (mMatrixPilha.length == 0) {
-                throw "inválido popMatrix!";
-            }
-            mMatrix = mMatrixPilha.pop();
-        }
-
-        function degToRad(graus) {
-            return graus * Math.PI / 180;
-        }
-
-
-        // Iniciar o ambiente quando a página for carregada
-        $(function () {
-            iniciaWebGL();
-        });
-
-        function iniciaWebGL() {
-            var canvas = $('#canvas-webgl')[0];
-            iniciarGL(canvas); // Definir como um canvas 3D
-            iniciarShaders();  // Obter e processar os Shaders
-            iniciarBuffers();  // Enviar o triângulo e quadrado na GPU
-            iniciarAmbiente(); // Definir background e cor do objeto
-
-            document.onkeydown = eventoTeclaPress;
-            document.onkeyup = eventoTeclaSolta;
-
-            tick();            // Desenhar a cena repetidamente
-        }
-
-        var ultimo = 0;
-        function animar() {
-            var agora = new Date().getTime();
-            if (ultimo != 0) {
-                var diferenca = agora - ultimo;
-                xRot += ((xVelo * diferenca) / 1000.0) % 360.0;
-                yRot += ((yVelo * diferenca) / 1000.0) % 360.0;
-
-            }
-            ultimo = agora;
-        }
-
-        var teclasPressionadas = {};
-
-        function eventoTeclaPress(evento) {
-            teclasPressionadas[evento.keyCode] = true;
-
-            if (String.fromCharCode(evento.keyCode) == "F")
-                filtro = (filtro + 1) % 3;
-        }
-
-        function eventoTeclaSolta(evento) {
-            teclasPressionadas[evento.keyCode] = false;
-        }
-
-
-
-        function tick() {
-            requestAnimFrame(tick);
-            tratarTeclado();
-            desenharCena();
-            animar();
-        }
-
         function tratarTeclado() {
             if (teclasPressionadas[33]) {
                 // Page Up
@@ -172,6 +105,68 @@
                 // Baixo
                 xVelo += 1;
             }
+        }
+
+        function mPopMatrix() {
+            if (mMatrixPilha.length == 0) {
+                throw "inválido popMatrix!";
+            }
+            mMatrix = mMatrixPilha.pop();
+        }
+
+        function degToRad(graus) {
+            return graus * Math.PI / 180;
+        }
+        var teclasPressionadas = {};
+
+        function eventoTeclaPress(evento) {
+            teclasPressionadas[evento.keyCode] = true;
+
+            if (String.fromCharCode(evento.keyCode) == "F")
+                filtro = (filtro + 1) % 3;
+        }
+
+        function eventoTeclaSolta(evento) {
+            teclasPressionadas[evento.keyCode] = false;
+        }
+
+
+        // Iniciar o ambiente quando a página for carregada
+        $(function () {
+            iniciaWebGL();
+        });
+
+        function iniciaWebGL() {
+            var canvas = $('#canvas-webgl')[0];
+            iniciarGL(canvas); // Definir como um canvas 3D
+            iniciarShaders();  // Obter e processar os Shaders
+            iniciarBuffers();  // Enviar o triângulo e quadrado na GPU
+            iniciarAmbiente(); // Definir background e cor do objeto
+            document.onkeydown = eventoTeclaPress;
+            document.onkeyup = eventoTeclaSolta;
+            tick();            // Desenhar a cena repetidamente
+
+        }
+
+        var ultimo = 0;
+        function animar() {
+            var agora = new Date().getTime();
+            if (ultimo != 0) {
+                var diferenca = agora - ultimo;
+                xRot += ((xVelo * diferenca) / 1000.0) % 360.0;
+                yRot += ((yVelo * diferenca) / 1000.0) % 360.0;
+                rTri += ((90 * diferenca) / 1000.0) % 360.0;
+                rQuad += ((75 * diferenca) / 1000.0) % 360.0;
+            }
+            ultimo = agora;
+        }
+
+
+        function tick() {
+            requestAnimFrame(tick);
+            tratarTeclado();
+            desenharCena();
+            animar();
         }
 
         function iniciarGL(canvas) {
@@ -496,21 +491,21 @@
             gl.bindBuffer(gl.ARRAY_BUFFER, orelhaDireita);
             var vertices = [
                 // Frente
-                2.0, 1.0, 0.0,
-                -1.0, -1.0, 1.0,
-                1.0, -1.0, 1.0,
+                0.5, -3.1, 0.0,
+                -5.6, -10.0, 1.0,
+                -5.6, -10.0, 1.0,
                 // Direita
-                2.0, 1.0, 0.0,
-                1.0, -1.0, 1.0,
-                1.0, -1.0, -1.0,
+                0.5, -3.1, 0.0,
+                -5.6, -10.0, -1.0,
+                -11, -10.0, 1.0,
                 // Trás
-                2.0, 1.0, 0.0,
-                1.0, -1.0, -1.0,
-                -1.0, -1.0, -1.0,
+                0.5, -3.1, 0.0,
+                -5.6, -10.0, -1.0,
+                -11, -10.0, -1.0,
                 // Esquerda
-                2.0, 1.0, 0.0,
-                -1.0, -1.0, -1.0,
-                -1.0, -1.0, 1.0
+                0.5, -3.1, 0.0,
+                -11, -10.0, -1.0,
+                -11, -10.0, 1.0
             ];
             gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
             orelhaDireita.itemSize = 3;
@@ -672,7 +667,7 @@
 
             // Desenhando Q Direita
 
-            
+
 
             vec3.set(translation, 1.4, 0.0, 0.0);
             mat4.translate(mMatrix, mMatrix, translation);
@@ -683,9 +678,10 @@
 
 
             // Desenhando Orelha Direita
-            
-            mat4.translate(mMatrix, mMatrix, [0.0, 0.0, z]);
 
+            vec3.set(translation, 0.0, 0.0, 0.0);
+            mPushMatrix();
+            mat4.translate(mMatrix, mMatrix, [0.0, 0.0, z]);
             mat4.rotate(mMatrix, mMatrix, degToRad(xRot), [1, 0, 0]);
             mat4.rotate(mMatrix, mMatrix, degToRad(yRot), [0, 1, 0]);
 
@@ -696,8 +692,8 @@
             gl.vertexAttribPointer(shaderProgram.vertexColorAttribute, orelhaEsquerdaColorBuffer.itemSize, gl.FLOAT, false, 0, 0);
             setMatrixUniforms();
             gl.drawArrays(gl.TRIANGLE_STRIP, 0, orelhaEsquerda.numItems);
-            
 
+            mPopMatrix();
 
         }
 
