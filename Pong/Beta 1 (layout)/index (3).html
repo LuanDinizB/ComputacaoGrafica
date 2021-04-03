@@ -1,0 +1,59 @@
+<html>
+
+<head>
+    <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+    <script src="https://unpkg.com/aframe-event-set-component@5.0.0/dist/aframe-event-set-component.min.js"></script>
+</head>
+
+<body>
+    
+    <a-scene>
+        <a-assets >
+            <img id="galaxy" src="./galaxy.jpg">
+            <img id="galaxy-NMR" src="./galaxy.jpg">
+            <img id="metal" src="./baixados.jpeg">
+            <img id="metal-NMR" src="./baixados.jpeg">
+        </a-assets>
+        <a-sound src="./Music.mp3" autoplay="true" position="0 2 5"></a-sound>
+        <a-sky material="color:#FFFFFF;
+        src: #galaxy;
+        repeat: 1 1;
+        normal-map: #galaxy-NMR;
+        normal-texture-repeat:1 1;
+        normal-scale: 1 -1;"></a-sky>
+        <a-entity >
+       <a-entity>
+           <a-camera position="0 0 50"></a-camera>
+       </a-entity>   
+        <a-box material="color:#FFFFFF;
+        src: #metal;
+        repeat: 1 1;
+        normal-map: #metal-NMR;
+        normal-texture-repeat:1 1;
+        normal-scale: 1 -1;"
+        position="-40 0 -10"
+        height="8" width=" 1" depth="1 "> </a-box
+         ></a-entity>
+         <a-box material="color:#FFFFFF;
+        src: #metal;
+        repeat: 1 1;
+        normal-map: #metal-NMR;
+        normal-texture-repeat:1 1;
+        normal-scale: 1 -1;"
+        position="40 0 -10"
+        height="8" width=" 1" depth="1 "> </a-box
+         ></a-entity>
+         <a-entity >
+             <a-box color="#8B4513" height="50" width=" 2" depth="1 " position ="50 0 -11" ></a-box>
+             <a-box color="#8B4513" height="50" width=" 2" depth="1 " position ="-50 0 -11" ></a-box>
+             <a-box color="#FFFFFF" height="50" width=" 2" depth="0 " position ="0 0 -10.9" ></a-box>
+             <a-box color="#8B4513" height="2" width=" 100" depth="1 " position ="0 24 -11" ></a-box>
+             <a-box color="#8B4513" height="2" width=" 100" depth="1 " position ="0 -24 -11" ></a-box>
+         </a-entity>
+        <a-plane color="#000000" position ="0 0 -11"
+        height="50" width=" 100" depth="1 " side="double" material="opacity: 0.9; transparent: true" ></a-plane>  
+        <a-text value="PONG:2077" position="0 50 -10"  align="center" scale="100 100"  ></a-text>
+    </a-scene>
+</body>
+
+</html>
