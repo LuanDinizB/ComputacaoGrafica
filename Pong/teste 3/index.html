@@ -1,0 +1,72 @@
+<html>
+
+<head>
+    <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+    <script src="https://unpkg.com/aframe-event-set-component@5.0.0/dist/aframe-event-set-component.min.js"></script>
+</head>
+
+<body>
+    <a-scene>
+        <!--assets -->
+        <a-assets>
+
+        </a-assets>
+
+        <!--camera -->
+        <a-entity  >
+            <a-camera camera look-controls position="0 1.6 0" wasd-controls-enabled="true">
+                <a-entity cursor="fuse: true; fuseTimeout: 500"
+                      position="0 0 -1"
+                      geometry="primitive: ring; radiusInner: 0.02; radiusOuter: 0.03"
+                      material="color: black; shader: flat">
+            </a-entity>
+            </a-camera>
+            
+          </a-entity>
+          
+        <!--céu -->
+        <a-sky color="#FFFFFF" src="./sky.jpeg"></a-sky>
+
+        <!--chão -->
+        <a-plane src="./floor.jpeg" rotation="-90 0 0" scale="100 100 100" repeat="10 10" shadow="receive:true">
+        </a-plane>
+
+        <!--caixas -->
+        <a-box id="purple" color="#008000" position="0 4 0" animation="property: rotation; to: 0 360 0; loop: true"
+            shadow="cast:true">
+        </a-box>
+
+        <a-entity position="0 0.5 0" animation="property: rotation; to: 0 360 0; loop: true;dur:5000">
+            <a-box color="#4B0082" position="2 0 0"></a-box>
+        </a-entity>
+
+        <a-entity id="move" position="0 0.5 0"
+            animation="property: position;from:-2 0.5 0; to: 2 0.5 0;dir:alternate;loop:true;dur:3000,easing:easeOutQuad">
+            <a-box  color="#FFFF00" position="0 0 0" shadow="receive:true"></a-box>
+        </a-entity>
+
+        <a-entity position="3 0.5 0" shadow="receive=true"
+            animation="property: scale; to: 0.2 1 5;loop:true;dir:alternate;dur:3000,elasticity:1000;easing:easeInOutElastic">
+            <a-box color="#B0E0E6" position="0 0 0" shadow="receive:true"></a-box>
+        </a-entity>
+
+        <!--luz -->
+        <a-entity light="type: ambient;
+                        intensity:0.2"></a-entity>
+
+        <a-entity light="type: point;
+                    color: #FFFFFF;
+                    intensity:0.8;
+                    castShadow: true;
+                    " position="0 10 0"></a-entity>
+
+        <a-entity light="type: spot;
+                    intensity:0.6;
+                    color:#FF1493;
+                    castShadow: false;
+                    target:#move
+                    " position="0 5 1"></a-entity>
+
+</body>
+
+</html>
