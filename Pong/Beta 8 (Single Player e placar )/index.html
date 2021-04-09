@@ -1,0 +1,367 @@
+<html>
+
+<head>
+  <script src="https://aframe.io/releases/0.6.0/aframe.min.js"></script>
+  <script
+    src="https://rawgit.com/feiss/aframe-environment-component/master/dist/aframe-environment-component.min.js"></script>
+  <script src="https://cdn.rawgit.com/donmccurdy/aframe-extras/v3.9.0/dist/components/sphere-collider.js"></script>
+  <script src="//cdn.rawgit.com/donmccurdy/aframe-extras/v3.13.1/dist/aframe-extras.min.js"></script>
+  <script src="https://unpkg.com/super-hands@^2.1.0/dist/super-hands.min.js"></script>
+  <script type="text/javascript" src="js/gl-matrix-2.4.0.min.js">
+  </script>
+  <script type="text/javascript" src="js/jquery-3.2.1.min.js">
+  </script>
+  <script type="text/javascript" src="js/webgl-utils.js">
+  </script>
+  <script src="//cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+</head>
+
+<body>
+
+  <a-scene physics="gravity: 0; restitution: 0.7">
+    <a-assets>
+      <img id="galaxy" src="./Images/galaxy.jpg">
+
+      <img id="metal" src="./Images/baixados.jpeg">
+
+      <img id="bola" src="./Images/bolinha.jpg">
+    </a-assets>
+    <a-sound src="./sounds/Music.mp3" autoplay="true" position="0 2 5"></a-sound>
+    
+    
+    <a-sky material="color:#FFFFFF;
+        src: #galaxy;
+        repeat: 1 1;
+        "></a-sky>
+    <a-entity>
+      <a-camera position="0 0 50"></a-camera>
+    </a-entity>
+
+    <a-sphere class="bola" material="color:#FFFFFF; src: #bola " position="0 0 -10" rotation="0 0 -90"></a-sphere>
+    <a-box class="player1" material="color:#FFFFFF;
+        src: #metal;
+        repeat: 1 1;
+        " position="-40 0 -10" height="8" width=" 1" depth="1 "> </a-box>
+    </a-entity>
+
+    <a-box class="player2" material="color:#FFFFFF;
+        src: #metal;
+        repeat: 1 1;
+        " position="40 0 -10" height="8" width=" 1" depth="1 "> </a-box>
+    </a-entity>
+    <a-entity>
+      <!-- borda direita -->
+      <a-box id="bordaD" color="#8B4513" height="50" width=" 2" depth="1 " position="50 0 -11" static-body></a-box>
+      <!-- borda esquerda -->
+      <a-box id="bordaE" color="#8B4513" height="50" width=" 2" depth="1 " position="-50 0 -11" static-body></a-box>
+      <!-- linha do meio -->
+      <a-box id="linhaDM" color="#FFFFFF" height="50" width=" 2" depth="0 " position="0 0 -10.9" static-body></a-box>
+      <!-- borda cima -->
+      <a-box id="bordaC" color="#8B4513" height="2" width=" 100" depth="1 " position="0 24 -11" static-body></a-box>
+      <!-- borda baixo -->
+      <a-box id="bordaB" color="#8B4513" height="2" width=" 100" depth="1 " position="0 -24 -11" static-body></a-box>
+    </a-entity>
+    <a-plane color="#000000" position="0 0 -11" height="50" width=" 100" depth="1 " side="double"
+      material="opacity: 0.9; transparent: true" static-body></a-plane>
+    <a-plane color="#000000" position="0 0 -10" height="50" width=" 100" depth="1 " side="double"
+      material="opacity: 0.1; transparent: true" static-body></a-plane>
+     
+    <a-text id="placar"
+        value="PONG:2077\n0 X 0" position="0 50 -10" color="#000000" align="center" width= 16 scale="10 10 2"
+        geometry="primitive: plane; width: 5; height: auto;" 
+        material="color: #262626" wrapCount= 35 zOffset= 0.1 >
+        </a-text>
+
+    
+  </a-scene>
+
+</body>
+
+<script>
+  Swal.fire({
+    title: 'Bem vindo ao Pong:2077',
+    padding: '3em',
+    background: '#fff url(./Images/cyber.jpg)',
+    backdrop: `
+    rgba(0,0,123,0.4)
+    url("./Images/keanu.gif")
+    left top
+    no-repeat
+  `,
+    showDenyButton: true,
+    showCancelButton: true,
+    confirmButtonText: `Single Player`,
+    denyButtonText: `Multiplayer`,
+  }).then((result) => {
+    /* Read more about isConfirmed, isDenied below */
+    if (result.isConfirmed) {
+      Swal.fire({
+        title: 'Player 1:(Z para cima,X para baixo)', showDenyButton: true,
+      }).then((result) => {
+        if (result.isConfirmed) {
+          jogo1Player();
+          main();
+        }
+      })
+
+    } else if (result.isDenied) {
+
+      Swal.fire({
+        title: 'Player 2:(O para cima,P para baixo)',
+        showDenyButton: true,
+      }).then((result) => {
+        if (result.isConfirmed) {
+          jogo2Players();
+          main();
+
+        }
+      })
+
+
+    }
+  })
+  //Tempo
+  var tempo = 0.06;//tempo de renderização
+
+  //Velocidades e Direções
+  var velX = 0.3;//velocidade x
+  var velY = 0.3;//velocidade y
+  var dirX = 0.4;//direção x
+  var dirY = -0.4;//direção y
+
+  //Objetos de Jogo
+  let bola = document.querySelector('.bola');//bola
+
+  let bordaD = document.querySelector('#bordaD');//borda Direita
+  let bordaE = document.querySelector('#bordaE');//borda Esquerda
+  let bordaB = document.querySelector('#bordaB');//borda Baixo
+  let bordaC = document.querySelector('#bordaC');//borda Cima
+
+
+  let jogador1 = document.querySelector('.player1');//jogador esquerda
+  let jogador2 = document.querySelector('.player2');//jogador direita
+
+
+
+  var maxY = bordaC.object3D.position.x - (bordaC.getAttribute('height'));// maximo valor de Y
+  var minY = bordaB.object3D.position.x + (bordaB.getAttribute('height'))// minimo valor de Y
+
+  var maxX = bordaD.object3D.position.x - (bordaD.getAttribute('width'));// maximo valor de X
+  var minX = bordaE.object3D.position.x + (bordaE.getAttribute('width'));// maximo valor de X
+
+  var { x, y, z } = bola.object3D.position;//posicoes da bola
+
+  var ponto1 = 0;// ponto player 1
+  var ponto2 = 0;//ponto player 2
+
+  
+
+  function main() {
+
+
+    var oof = new Audio('./sounds/oof.mp3');
+
+    function quica() {
+
+      if (y >= 19 || y <= -19) {
+        dirY = dirY * (-1);
+      }
+
+    }
+    function quicaPlayer() {
+      if (x >= -32 && x <= -31) {
+        if (y <= jogador1.object3D.position.y + 4 && y >= jogador1.object3D.position.y - 4) {
+          dirX = dirX * (-1);
+        }
+      }
+      if (x >= 31 && x <= 33) {
+
+        if (y <= jogador2.object3D.position.y + 4 && y >= jogador2.object3D.position.y - 4) {
+          dirX = dirX * (-1);
+        }
+      }
+    }
+    function quicaPonto() {
+      if (x >= 40) {
+        x = 0;
+        y = 0;
+        ponto1++;
+        oof.play();
+        document.getElementById("placar").setAttribute('value',"PONG:2077\n"+ ponto1+" X "+ponto2);
+      }
+      if (x <= -40) {
+        x = 0;
+        y = 0;
+        ponto2++;
+        oof.play();
+        document.getElementById("placar").setAttribute('value',"PONG:2077\n"+ ponto1+" X "+ponto2);
+      }
+    }
+
+    function tick() {
+      quica();
+      quicaPlayer();
+      quicaPonto();
+      bola.object3D.position.set(x + (velX * dirX), y + (velY * dirY), z);
+      x = bola.object3D.position.x;
+      y = bola.object3D.position.y;
+      z = bola.object3D.position.z;
+
+      setTimeout(() => {
+        tick();
+      }, tempo);
+
+    }
+
+    tick();
+
+  }
+  function jogo1Player() {
+    player1Move();
+    inimigo();
+
+    function player1Move() {
+
+      let elem = document.querySelector('.player1');
+
+      $(document).ready(function () {
+        $(document).on('keydown', function (e) {
+          eventoTeclaPress(e);
+
+        });
+
+        $(document).on('keyup', function (e) {
+          eventoTeclaSolta(e);
+        });
+      });
+      function eventoTeclaPress(evento) {
+        teclasPressionadas[evento.keyCode] = true;
+
+        tratarTeclado();
+        if (String.fromCharCode(evento.keyCode) == "F")
+          filtro = (filtro + 1) % 3;
+      }
+
+      function eventoTeclaSolta(evento) {
+        teclasPressionadas[evento.keyCode] = false;
+      }
+      var teclasPressionadas = {};
+      function tratarTeclado() {
+        if (teclasPressionadas[90] && elem.object3D.position.y < 19) {
+          // Page Up
+          elem.object3D.position.y += 2;
+        }
+        if (teclasPressionadas[88] && elem.object3D.position.y > -19) {
+          // Page Down
+          elem.object3D.position.y -= 2;
+        }
+
+
+      }
+    }
+
+    function inimigo() {
+
+      let elem2 = document.querySelector('.player2');
+      tick();
+      function tick() {
+        if (elem2.object3D.position.y < y && x > 0) {
+          elem2.object3D.position.y += 0.09;
+        }
+        if (elem2.object3D.position.y > y && x > 0) {
+          elem2.object3D.position.y -= 0.09;
+        }
+
+        setTimeout(() => {
+          tick();
+        }, tempo);
+
+      }
+    }
+  }
+  function jogo2Players() {
+    player1Move();
+    player2Move();
+
+
+    function player1Move() {
+
+      let elem = document.querySelector('.player1');
+
+      $(document).ready(function () {
+        $(document).on('keydown', function (e) {
+          eventoTeclaPress(e);
+
+        });
+
+        $(document).on('keyup', function (e) {
+          eventoTeclaSolta(e);
+        });
+      });
+      function eventoTeclaPress(evento) {
+        teclasPressionadas[evento.keyCode] = true;
+
+        tratarTeclado();
+        if (String.fromCharCode(evento.keyCode) == "F")
+          filtro = (filtro + 1) % 3;
+      }
+
+      function eventoTeclaSolta(evento) {
+        teclasPressionadas[evento.keyCode] = false;
+      }
+      var teclasPressionadas = {};
+      function tratarTeclado() {
+        if (teclasPressionadas[90] && elem.object3D.position.y < 19) {
+          // Page Up
+          elem.object3D.position.y += 1.5;
+        }
+        if (teclasPressionadas[88] && elem.object3D.position.y > -19) {
+          // Page Down
+          elem.object3D.position.y -= 1.5;
+        }
+
+
+      }
+    }
+
+    function player2Move() {
+
+      let elem2 = document.querySelector('.player2');
+      $(document).ready(function () {
+        $(document).on('keydown', function (e) {
+          eventoTeclaPress(e);
+
+        });
+
+        $(document).on('keyup', function (e) {
+          eventoTeclaSolta(e);
+        });
+      });
+      function eventoTeclaPress(evento) {
+        teclasPressionadas[evento.keyCode] = true;
+
+        tratarTeclado();
+        if (String.fromCharCode(evento.keyCode) == "F")
+          filtro = (filtro + 1) % 3;
+      }
+
+      function eventoTeclaSolta(evento) {
+        teclasPressionadas[evento.keyCode] = false;
+      }
+      var teclasPressionadas = {};
+      function tratarTeclado() {
+
+        if (teclasPressionadas[79] && elem2.object3D.position.y < 19) {
+          // Cima Player 2
+          elem2.object3D.position.y += 1;
+        }
+        if (teclasPressionadas[80] && elem2.object3D.position.y > -19) {
+          // Baixo Player 2
+          elem2.object3D.position.y -= 1;
+        }
+      }
+    }
+  }
+</script>
+
+</html>
