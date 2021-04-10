@@ -266,10 +266,10 @@
       tick();
       function tick() {
         if (elem2.object3D.position.y < y && x > 0) {
-          elem2.object3D.position.y += 1;
+          elem2.object3D.position.y += 0.1;
         }
         if (elem2.object3D.position.y > y && x > 0) {
-          elem2.object3D.position.y -= 1;
+          elem2.object3D.position.y -= 0.1;
         }
 
         setTimeout(() => {
