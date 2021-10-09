@@ -1,1 +1,1 @@
-# Luan
+# Trabalhos de computação gráfica 
